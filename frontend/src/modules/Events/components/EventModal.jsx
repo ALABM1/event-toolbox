@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import "../Events.css";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,6 +16,8 @@ import { UserData } from "./../../../utils/UserData";
 function EventModal() {
   const dispatch = useDispatch();
   const userData = UserData();
+  const modalRef = useRef(null);
+
   const { isModalOpen, selectedEvent, isEdit } = useSelector(
     (state) => state.eventsStore
   );
@@ -36,7 +38,7 @@ function EventModal() {
       }
       const response = await axiosRequest.post("/events/add", {
         ...selectedEvent,
-        organizerId:userData.id
+        organizerId: userData.id,
       });
       dispatch(addEvent(response.data));
       dispatch(toggleEventModal());
@@ -60,13 +62,10 @@ function EventModal() {
       if (!validateFields()) {
         return;
       }
-      const response = await axiosRequest.post(
-       `/events/edit/${eventId}`,
-        {
-          organizerId:userData.id,
-          ...selectedEvent      }
-      );
-      console.log(response.data.event)
+      const response = await axiosRequest.post(`/events/edit/${eventId}`, {
+        organizerId: userData.id,
+        ...selectedEvent,
+      });
       dispatch(editEvent(response.data.event));
       dispatch(toggleEventModal());
       dispatch(
@@ -98,6 +97,26 @@ function EventModal() {
       updateSelectedEventField({ id: payload.id, value: payload.value })
     );
   };
+  const handleClickOutside = (event) => {
+    if (modalRef.current && !modalRef.current.contains(event.target)) {
+      dispatch(toggleEventModal());
+      if (isEdit) {
+        dispatch(resetEventModal());
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isModalOpen]);
 
   return (
     <>
@@ -110,7 +129,7 @@ function EventModal() {
         aria-modal="true"
         role="dialog"
       >
-        <div className="modal-dialog" role="document">
+        <div className="modal-dialog" role="document" ref={modalRef}>
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title" id="exampleModalLabel1">
@@ -121,8 +140,8 @@ function EventModal() {
                 className="btn-close"
                 onClick={() => {
                   dispatch(resetEventModal());
-                  if(isEdit){
-                    dispatch(changeFormState(false))
+                  if (isEdit) {
+                    dispatch(changeFormState(false));
                   }
                   dispatch(toggleEventModal());
                 }}
@@ -153,6 +172,7 @@ function EventModal() {
                   placeholder="Enter Description"
                   value={selectedEvent.description}
                   onChange={handleInputChange}
+                  style={{ maxHeight: "120px" }}
                 ></textarea>
               </div>
               <div className="mb-3">
@@ -164,6 +184,7 @@ function EventModal() {
                   className="form-control"
                   placeholder="Enter Location"
                   value={selectedEvent.location}
+                  style={{ maxHeight: "80px" }}
                   onChange={handleInputChange}
                 ></textarea>
               </div>
@@ -199,7 +220,7 @@ function EventModal() {
             <div className="modal-footer">
               <button
                 type="button"
-                className="btn btn-label-secondary"
+                className="btn btn-label-secondary me-2"
                 onClick={() => {
                   dispatch(resetEventModal());
                   dispatch(toggleEventModal());

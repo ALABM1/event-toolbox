@@ -28,7 +28,6 @@ const WorkshopSchema=mongoose.Schema({
     },
     spaceId:{
         type:Number,
-        required:true,
     },
     eventId:{
         type:Number,
@@ -40,7 +39,12 @@ const WorkshopSchema=mongoose.Schema({
     organizerId:{
         type:Number,
         required:true,
-    }
+    },
+    currentParticipants: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
     
 } ,{ timestamps: true })
 

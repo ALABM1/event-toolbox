@@ -26,13 +26,12 @@ const EventSchema = mongoose.Schema(
       type: Date,
       required: true,
     },
-    currentParticipants: {
-      type: Number,
-      required: false,
-    },
     organizerId:{
       type: Number,
       required: true,
+    },
+    formId:{
+      type:Number,
     }
   },
   { timestamps: true }
